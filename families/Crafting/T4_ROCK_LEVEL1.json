@@ -1,0 +1,1 @@
+{"base":"T4_ROCK_LEVEL1","path":["Crafting","Resources"],"slot":"Material","art":0,"traded":1,"tiers":{"4":{"names":{},"desc":{},"two_handed":0,"maxq":0,"combat":{"weight":"0.51","tier":"4"},"spells":[],"variants":[{"e":0,"id":"T4_ROCK_LEVEL1","ip":0,"dura":0,"craft":{"silver":1800,"time":0.00625,"focus":0,"res":[{"id":"T4_ROCK","n":1}]},"up":null}]}}}

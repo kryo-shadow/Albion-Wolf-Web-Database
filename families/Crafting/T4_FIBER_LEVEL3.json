@@ -1,0 +1,1 @@
+{"base":"T4_FIBER_LEVEL3","path":["Crafting","Resources"],"slot":"Material","art":0,"traded":1,"tiers":{"4":{"names":{},"desc":{},"two_handed":0,"maxq":0,"combat":{"weight":"0.51","tier":"4"},"spells":[],"variants":[{"e":0,"id":"T4_FIBER_LEVEL3","ip":0,"dura":0,"craft":{"silver":6000,"time":0.01042,"focus":0,"res":[{"id":"T4_FIBER_LEVEL2","n":1}]},"up":null}]}}}

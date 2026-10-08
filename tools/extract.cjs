@@ -173,7 +173,7 @@ function sub3(cat, sub, code) {
   if (cat === 'Farming' && sub === 'Farm') return /_SEED/.test(c) ? 'Seeds' : 'Plants';
   if (cat === 'Farming' && sub === 'Herb Garden') return /_SEED/.test(c) ? 'Seeds' : 'Herbs';
   if (cat === 'Farming' && sub === 'Pasture') {
-    if (/_BABY/.test(c)) return 'Baby animals';
+    if (/_BABY/.test(c)) return 'Baby Animals';
     if (/_GROWN/.test(c)) return 'Animal';
     if (/EGG/.test(c)) return 'Eggs';
     if (/MILK/.test(c)) return 'Milk';
@@ -215,6 +215,7 @@ function sub3(cat, sub, code) {
   if (cat === 'Other' && sub === 'Luxury Goods') return 'Any';
   if (cat === 'Other' && sub === 'Map') {
     if (/HELLGATE/.test(c)) return 'Hellgates';
+    if (/CORRUPTED/.test(c)) return 'Corrupted Dungeons';
     if (/RANDOM_DUNGEON/.test(c)) return 'Randomized Dungeons';
     if (/SHARD_/.test(c)) return 'Map Fragments';
     return '';
@@ -432,6 +433,7 @@ for (const t of ELEMENTS) {
   }
 }
 log('item elements:', elById.size);
+const _allCodes = new Set(elById.keys());
 
 const spellMemo = new Map();
 function resolveSpells(u, seen = []) {
@@ -478,7 +480,11 @@ const missingTax = [];
 for (const [u, el] of elById) {
   const code = String(u);
   if (/@\d+$/.test(code)) continue; // fold @variants into base (levels from enchantments[])
-  const b = baseOf(code);
+  let b = baseOf(code);
+  // Enchant-level resource duplicates (T8_PLANKS_LEVEL2): covered by base
+  // family variants — skip when the base element exists.
+  const lvlMatch = b.match(/^(T\d+_.+)_LEVEL([1-4])$/);
+  if (lvlMatch && _allCodes.has(lvlMatch[1])) continue;
   if (JUNK.test(b)) { junk.push(b); continue; }
   const tier = el['@tier'] != null ? Number(el['@tier']) : tierOf(b);
   // taxonomy
@@ -516,7 +522,7 @@ for (const [u, el] of elById) {
     const rest = (b.match(/^T\d+_(.+)$/) || [])[1] || '';
     return {
       e: lv,
-      id: lv ? (RESFAM.test(rest) ? `${b}_LEVEL${lv}@${lv}` : `${b}@${lv}`) : b,
+      id: lv ? (RESFAM.test(rest) ? `${b}_LEVEL${lv}` : `${b}@${lv}`) : b,
       ip: Number((ed && ed['@itempower']) || (lv === 0 ? el['@itempower'] : 0)) || 0,
       dura: Number((ed && ed['@durability']) || (lv === 0 ? el['@durability'] : 0)) || 0,
       craft: craftOf(lv === 0 ? el.craftingrequirements : ed && ed.craftingrequirements),
@@ -541,9 +547,11 @@ for (const g of new Set([...families.values()].map((f) => f.path[0]))) {
 }
 const index = [];
 let files = 0;
+const written = new Set();
 for (const fam of families.values()) {
   const rel = `families/${fam.path[0]}/${fam.base}.json`;
   fs.writeFileSync(path.join(ROOT, rel), JSON.stringify(fam));
+  written.add(rel);
   files++;
   for (const [t, rec] of Object.entries(fam.tiers)) {
     for (const v of rec.variants) {
@@ -581,6 +589,23 @@ const meta = {
   counts: { families: families.size, records: index.length, spells: Object.keys(spellDict).length, files }
 };
 fs.writeFileSync(path.join(ROOT, 'meta.json'), JSON.stringify(meta, null, 2));
+
+/* ---- remove stale family files from previous runs ---- */
+let stale = 0;
+{
+  const walk = (dir) => {
+    for (const e of fs.readdirSync(dir, { withFileTypes: true })) {
+      const p = path.join(dir, e.name);
+      if (e.isDirectory()) walk(p);
+      else if (e.name.endsWith('.json')) {
+        const rel = path.relative(ROOT, p).replace(/\\/g, '/');
+        if (!written.has(rel)) { fs.unlinkSync(p); stale++; }
+      }
+    }
+  };
+  walk(path.join(ROOT, 'families'));
+}
+log('stale files removed:', stale);
 
 /* ---- validate ---- */
 let badFiles = 0;

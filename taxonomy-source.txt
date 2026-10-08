@@ -1,0 +1,381 @@
+|||Weapons
+|
+|----Bow
+|
+|----Crossbow
+|
+|----Axe
+|
+|----Dagger
+|
+|----Hammer
+|
+|----War Gloves
+|
+|----Mace
+|
+|----Quarter Staff
+|
+|----Spear
+|
+|----Sword
+|
+|----Arcane Staff
+|
+|----Cursed Staff
+|
+|----Fire Staff
+|
+|----Frost Staff
+|
+|----Holy Staff
+|
+|----Nature Staff
+|
+|----Shapeshifter Staff
+---------------------------------------------------------------
+|||Chest Armor
+|
+|----Cloth Robes
+|
+|----Leather Jackets
+|
+|----Plate Armor
+---------------------------------------------------------------
+|||Head Armor
+|
+|----Cloth Cowl
+|
+|----Leather Hood
+|
+|----Plate Helmet
+---------------------------------------------------------------
+|||Foot Armor
+|
+|----Cloth Sandals
+|
+|----Leather Shoes
+|
+|----Plate Boots
+---------------------------------------------------------------
+|||Off Hands
+|
+|----Mage
+|
+|----Hunter
+|
+|----Warrior
+----------------------------------------------------------------
+|||Caps
+|
+|----Cape
+|
+|----Bridgewatch
+|
+|----Fort Sterling
+|
+|----Lymhurst
+|
+|----Martlock
+|
+|----Thetford
+|
+|----Caerleon
+|
+|----Brecilien
+|
+|----Heretic
+|
+|----Undead
+|
+|----Keeper
+|
+|----Morgana
+|
+|----Avalonian
+|
+|----Demon
+|
+|----Smuggler
+---------------------------------------------------------------
+|||Bags
+|
+|----Bags
+|
+|----Satchels of Insight
+---------------------------------------------------------------
+|||Mount
+|
+|----Base Mounts
+|
+|----Rare Mounts
+|
+|----Battle Mount
+------------------------------------------------------------------
+|||Consumable
+|
+|----Food
+|
+|----Potions
+|
+|----Tomes
+|
+|----Other
+     |
+     |----Repair Powder
+     |
+     |----Fireworks
+------------------------------------------------------------------
+|||Gathering Equipment
+|
+|----Fish
+|
+|----Fiber
+|
+|----Hide
+|
+|----Ore
+|
+|----Stone
+|
+|----Wood
+|
+|----Tracking
+-------------------------------------------------------------------
+|||Crafting
+|
+|----Resources
+|
+|----Refined Resources
+|
+|----Tokens
+     |
+     |----Mount Upgrades
+     |
+     |----Royal Sigil
+     |
+     |----Other
+|
+|----City Resources
+     |
+     |----Beastheart
+     |
+     |----Treeheart
+     |
+     |----Mountainheart
+     |
+     |----Rockheart
+     |
+     |----Vineheart
+     |
+     |----Shadowheart
+|
+|----Fish
+     |
+     |----Common
+     |
+     |----Rare
+     |
+     |----Other
+|
+|----Alchemy
+--------------------------------------------------------------------
+|||Artifact
+|
+|----Weapons
+|
+|----Chest Armor
+|
+|----Head Armor
+|
+|----Foot Armor
+|
+|----Off Hands
+|
+|----Artifact Fragments
+|
+|----Capes
+|
+|----Crystallized Artifacts
+-------------------------------------------------------------------
+|||Farming
+|
+|----Farm
+     |
+     |----Seeds
+     |
+     |----Plants
+|
+|----Herb Garden
+     |
+     |----Seeds
+     |
+     |----Herbs
+|
+|----Pasture
+     |
+     |----Baby Animals
+     |
+     |----Animal
+     |
+     |----Eggs
+     |
+     |----Milk
+|
+|----Kennel
+     |
+     |----Baby Animals
+     |
+     |----Animal
+|
+|----Farming Products
+     |
+     |----Alcohol
+     |
+     |----Bread
+     |
+     |----Butter
+     |
+     |----Flour
+     |
+     |----Meat
+-------------------------------------------------------------------
+|||Furniture
+|
+|----Repair Kit
+|
+|----Chest
+     |
+     |----House
+     |
+     |----World
+|
+|----House
+|
+|----Island
+|
+|----World
+     |
+     |----Banner
+     |
+     |----Statues
+     |
+     |----Other
+-----------------------------------------------------------------
+|||Vanity
+|
+|----Mounts
+|
+|----Weapons
+|
+|----Chest Armor
+|
+|----Head Armor
+|
+|----Foot Armor
+|
+|----Off Hands
+|
+|----Capes
+|
+|----Kill Emotes
+-----------------------------------------------------------------
+|||Other
+|
+|----Guilds
+     |
+     |----Hideout
+     |
+     |----Siege Hammer
+     |
+     |----Siege Banner
+|
+|----Laborers
+     |
+     |----Journals
+     |
+     |----Trophies
+     |
+     |----Contracts
+     |
+     |----Items
+     |
+     |----Tables
+|
+|----Tokens
+     |
+     |----Vanity
+     |
+     |----Crystal League Token
+     |
+     |----Anchor
+     |
+     |----Other
+|
+|----Luxury Goods
+     |
+     |----Bridgewatch
+     |
+     |----Fort Sterling
+     |
+     |----Lymhurst
+     |
+     |----Martlock
+     |
+     |----Thetford
+     |
+     |----Caerleon
+     |
+     |----Any
+|
+|----Map
+     |
+     |----Randomized Dungeons
+     |
+     |----Map Fragments
+     |
+     |----Corrupted Dungeons
+     |
+     |----Hellgates
+|
+|----Hardcore Expeditions
+     |
+     |----Event
+     |
+     |----Fishy Business
+     |
+     |----Fistful of Silver
+     |
+     |----Lumber Lunacy
+     |
+     |----Fungicide
+     |
+     |----Preaching to the Dead
+     |
+     |----Lurking Underneath
+     |
+     |----Stone Wars
+     |
+     |----Three Sisters
+     |
+     |----In the Ravens Claws
+     |
+     |----Eternal Battle
+|
+|----Quest Items
+     |
+     |----Cities
+          |
+          |----Bridgewatch
+          |
+          |----Fort Sterling
+          |
+          |----Lymhurst
+          |
+          |----Martlock
+          |
+          |----Thetford
+          |
+          |----Caerleon
+     |
+     |----Other

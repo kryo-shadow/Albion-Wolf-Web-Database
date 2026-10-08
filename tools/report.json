@@ -1,42 +1,20 @@
 {
   "meta": {
     "version": 3,
-    "generated_at": "2026-10-08T15:10:55.803Z",
+    "generated_at": "2026-10-08T17:00:01.429Z",
     "sources": {
       "dumps": "ao-bin-dumps-master (local)",
       "formatted": "included",
       "localization": "included"
     },
     "counts": {
-      "families": 5336,
-      "records": 11514,
+      "families": 5161,
+      "records": 11339,
       "spells": 4731,
-      "files": 5336
+      "files": 5161
     }
   },
-  "typoFixes": [
-    "Dogger",
-    "Coerleon",
-    "Morgona",
-    "Avalonion",
-    "Mount Upgrodes",
-    "Rayal Sigil",
-    "Shadawheart",
-    "Comman",
-    "rare",
-    "Edds",
-    "Contocts",
-    "Iteds",
-    "Crystal League Tokem",
-    "Randomiwed Dungeons",
-    "Comupoed Dungeans",
-    "Fishy Busines",
-    "Lumber Lunocy",
-    "preaching to the Deod",
-    "Luking Undermeah",
-    "Three Sisoers",
-    "In the Ravens Ckaws"
-  ],
+  "typoFixes": [],
   "junkDropped": 705,
   "junkSample": [
     "UNIQUE_INTERNAL_HEAD_GAMEMASTER",
@@ -122,13 +100,13 @@
     "QUESTITEM_EXP_TOKEN_D3_T6_EXP_HRD_UNDEAD_RECRUITMENT",
     "QUESTITEM_EXP_TOKEN_D4_T6_EXP_HRD_UNDEAD_RECRUITMENT"
   ],
-  "missingNamesCount": 576,
+  "missingNamesCount": 401,
   "missingTaxonomy": [],
   "missingTaxonomyCount": 0,
   "badPathLog": [],
   "validate": {
     "badFiles": 0,
     "badPath": 0,
-    "emptyNames": 576
+    "emptyNames": 401
   }
 }

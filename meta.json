@@ -1,15 +1,20 @@
 {
-  "version": 3,
-  "generated_at": "2026-10-08T17:00:01.429Z",
+  "version": 4,
+  "generated_at": "2026-10-09T18:17:30.246Z",
   "sources": {
     "dumps": "ao-bin-dumps-master (local)",
     "formatted": "included",
     "localization": "included"
   },
   "counts": {
-    "families": 5161,
-    "records": 11339,
+    "families": 4641,
+    "records": 10819,
     "spells": 4731,
-    "files": 5161
+    "files": 4641
+  },
+  "dropped": {
+    "junk": 705,
+    "hidden": 502,
+    "soundFx": 18
   }
 }

@@ -1,15 +1,19 @@
-// Albion Wolf Database v3 — extractor.
+// Albion Wolf Database v4 — extractor.
 // Run from the repo root:  node tools/extract.cjs
 // Inputs : ../ao-bin-dumps-master/{items.json,formatted/items.json,spells.json,localization.json}
 //          tools/vendor/{item-classes.json,filters-ar.json}, taxonomy-source.txt
 // Outputs: taxonomy.json, index.json, spells.json, families/**, meta.json, README.md
+// v4 vs v3: SAME pipeline + SAME order (identical iteration), PLUS per-item
+// gameplay fields (value/fame/weight/tradable/stack/unlock/showmarket),
+// MINUS everything the site used to hide at runtime (HIDDEN_RE) and
+// sound-making / visual-FX vanity items (SOUNDFX_RE).
 const fs = require('fs');
 const path = require('path');
 
 const ROOT = path.resolve(__dirname, '..');
 const DUMPS = path.resolve(ROOT, '..', 'ao-bin-dumps-master');
 const VENDOR = path.join(ROOT, 'tools', 'vendor');
-const log = (...a) => console.log('[v3]', ...a);
+const log = (...a) => console.log('[v4]', ...a);
 const asArr = (v) => (v == null ? [] : Array.isArray(v) ? v : [v]);
 const t0 = Date.now();
 
@@ -117,6 +121,10 @@ const tierOf = (c) => { const m = String(c).match(/^T(\d+)/); return m ? Number(
 const NOTRADED = /FURNITURE|_RUG|PAVILION|SILVERBAG|^UNIQUE|TOKEN|LABOURER|JOURNAL|LOOTBAG|HELLGATE|SIEGE|^.*BANNER$|TROPHY|ALMANAC|SKILLBOOK|TOTEM|QUESTITEM|KILL_EMOTE|DEBUG|_MERCHANT|^SOLDIER$|_MERCENARY|^GUILD_/;
 // True junk only (NOTRADED is for market tradability — the encyclopedia keeps everything else).
 const JUNK = /^(TRASH|DEBUG)|PROTOTYPE|FAMEBUFF|GAMEMASTER|WEAPONMASTER|ALTAR_OF_CHEATING|FIRSTREFERRAL|CONQUEROR|_TEMPLATE|NONTRADABLE|NON_TRADABLE|UNTRADEABLE|_HIDDEN|_TEST|_ADC/;
+// v4: everything the site previously hid at runtime (hiddenItem() in items-db.ts) — dropped at build time instead.
+const HIDDEN_RE = /GVGSEASONREWARD_FAMEBUFF|LOOTBAG_[A-Z0-9_]*ARENA|LOOTCHEST_BATTLEMOUNT|LOOTCHEST_CONQUEROR_SEASON|LOOTCHEST_FACTIONCAMPAIGN|LOOTCHEST_SKILLBOOKS_TELLAFRIEND|LOOTCHEST_CRYSTAL_LEAGUE|LOOTCHEST_COMMUNITY|CONSUMABLE_SPECIAL_NONTRADABLE|TRASH|T3_RANDOM_DUNGEON_SOLO_TOKEN_1|T3_RANDOM_DUNGEON_SOLO_TOKEN_D1|T3_PREMIUMITEM_3_NONTRADABLE|NONTRADABLE|NON_TRADABLE|UNTRADEABLE|UNIQUE_TOKEN_AOCP|UNIQUE_TOKEN_COMMUNITY|PROTOTYPE|(^|_)SKIN_|UNIQUE_MOUNT_ARMORED_HORSE_KNIGHT_01_TEST|UNIQUE_MOUNT_PANDA_TELLAFRIEND|UNIQUE_MOUNT_RHINO_TELLAFRIEND|FOUNDER|DEBUG|QUESTITEM_TOKEN_ARENA_CRYSTAL|QUESTITEM_TOKEN_ROYAL_HORSE|QUESTITEM_STANDING_SMUGGLER/;
+// v4: sound-making + visual-FX vanity items rejected by the user (kill emotes, fireworks, vanity trumpet/horn).
+const SOUNDFX_RE = /KILL_EMOTE|VANITY_CONSUMABLE_FIREWORKS|VANITY_MAIN_TRUMPET|VANITY_MAIN_HORN/;
 function slotOf(c) {
   const u = String(c).toUpperCase();
   if (/^UNIQUE/.test(u)) return 'Unique';
@@ -475,6 +483,9 @@ const RESFAM = /^(ORE|HIDE|FIBER|WOOD|ROCK|METALBAR|LEATHER|CLOTH|PLANKS|STONEBL
 
 const families = new Map(); // base -> {base, path, slot, tiers: Map tier -> {...}}
 const junk = [];
+const junkHidden = []; // v4: previously hidden at runtime, now dropped at build
+const junkFx = []; // v4: sound/FX vanity items rejected by the user
+let enchValOverrides = 0; // v4: variants whose enchantment overrides @itemvalue
 const missingNames = [];
 const missingTax = [];
 for (const [u, el] of elById) {
@@ -486,6 +497,8 @@ for (const [u, el] of elById) {
   const lvlMatch = b.match(/^(T\d+_.+)_LEVEL([1-4])$/);
   if (lvlMatch && _allCodes.has(lvlMatch[1])) continue;
   if (JUNK.test(b)) { junk.push(b); continue; }
+  if (HIDDEN_RE.test(b)) { junkHidden.push(b); continue; }
+  if (SOUNDFX_RE.test(b)) { junkFx.push(b); continue; }
   const tier = el['@tier'] != null ? Number(el['@tier']) : tierOf(b);
   // taxonomy
   let cs = catSub(b, el['@shopcategory'], el['@shopsubcategory1']);
@@ -510,6 +523,12 @@ for (const [u, el] of elById) {
   // combat
   const combat = {};
   for (const k of COMBAT_KEEP) if (el['@' + k] != null) combat[k] = el['@' + k];
+  // v4: full gameplay fields — value (@itemvalue), fame (@famevalue), weight,
+  // tradability, stack size, craft unlock, marketplace visibility. Never drop info.
+  const num = (v) => { const n = Number(v); return Number.isFinite(n) ? n : 0; };
+  const baseValue = num(el['@itemvalue']);
+  const baseFame = num(el['@famevalue']);
+  const baseWeight = el['@weight'] != null && el['@weight'] !== '' ? Number(el['@weight']) : null;
   // variants
   const enchLevels = asArr(el.enchantments && el.enchantments.enchantment).map((e) => Number(e['@enchantmentlevel']));
   let levels = enchLevels.length ? [...new Set(enchLevels)].sort((a, c) => a - c) : [];
@@ -520,9 +539,13 @@ for (const [u, el] of elById) {
   const variants = levels.map((lv) => {
     const ed = asArr(el.enchantments && el.enchantments.enchantment).find((e) => Number(e['@enchantmentlevel']) === lv);
     const rest = (b.match(/^T\d+_(.+)$/) || [])[1] || '';
+    const evRaw = ed && ed['@itemvalue'];
+    const ev = (evRaw != null && evRaw !== '' && Number.isFinite(Number(evRaw))) ? Number(evRaw) : baseValue;
+    if (ev !== baseValue) enchValOverrides++;
     return {
       e: lv,
       id: lv ? (RESFAM.test(rest) ? `${b}_LEVEL${lv}` : `${b}@${lv}`) : b,
+      v: ev,
       ip: Number((ed && ed['@itempower']) || (lv === 0 ? el['@itempower'] : 0)) || 0,
       dura: Number((ed && ed['@durability']) || (lv === 0 ? el['@durability'] : 0)) || 0,
       craft: craftOf(lv === 0 ? el.craftingrequirements : ed && ed.craftingrequirements),
@@ -534,11 +557,16 @@ for (const [u, el] of elById) {
     names: nm, desc: ds,
     two_handed: el['@twohanded'] === 'true' ? 1 : 0,
     maxq: Number(el['@maxqualitylevel'] || 0) || 0,
+    value: baseValue, fame: baseFame, weight: baseWeight,
+    tradable: el['@tradable'] === 'false' ? 0 : 1,
+    stack: num(el['@maxstacksize']),
+    unlock: el['@unlockedtocraft'] === 'false' ? 0 : 1,
+    showmarket: el['@showinmarketplace'] === 'false' ? 0 : 1,
     combat, spells, variants
   };
   families.set(b, fam);
 }
-log('families:', families.size, '| junk dropped:', junk.length, '| missing names:', missingNames.length, '| missing taxonomy:', missingTax.length);
+log('families:', families.size, '| junk dropped:', junk.length, '| hidden dropped:', junkHidden.length, '| sound/fx dropped:', junkFx.length, '| missing names:', missingNames.length, '| missing taxonomy:', missingTax.length);
 
 /* ================= 6. emit ================= */
 for (const d of ['families', 'tools']) fs.mkdirSync(path.join(ROOT, d), { recursive: true });
@@ -558,7 +586,7 @@ for (const fam of families.values()) {
       index.push({
         id: v.id, b: fam.base, n: rec.names, g: fam.path[0],
         s: fam.path[1] || '', s3: fam.path[2] || '', s4: fam.path[3] || '',
-        slot: fam.slot, t: Number(t), e: v.e, art: fam.art, tr: fam.traded, f: rel
+        slot: fam.slot, t: Number(t), e: v.e, art: fam.art, tr: fam.traded, f: rel, v: v.v
       });
     }
   }
@@ -584,11 +612,33 @@ fs.writeFileSync(path.join(ROOT, 'taxonomy.json'), JSON.stringify(taxonomy));
 fs.writeFileSync(path.join(ROOT, 'index.json'), JSON.stringify(index));
 fs.writeFileSync(path.join(ROOT, 'spells.json'), JSON.stringify(spellDict));
 const meta = {
-  version: 3, generated_at: new Date().toISOString(),
+  version: 4, generated_at: new Date().toISOString(),
   sources: { dumps: 'ao-bin-dumps-master (local)', formatted: 'included', localization: 'included' },
-  counts: { families: families.size, records: index.length, spells: Object.keys(spellDict).length, files }
+  counts: { families: families.size, records: index.length, spells: Object.keys(spellDict).length, files },
+  dropped: { junk: junk.length, hidden: junkHidden.length, soundFx: junkFx.length }
 };
 fs.writeFileSync(path.join(ROOT, 'meta.json'), JSON.stringify(meta, null, 2));
+
+/* ---- v4 order check: v4 index must equal v3 index minus excluded, same relative order ---- */
+let orderCheck = 'skipped (no v3 index)';
+try {
+  const v3idx = JSON.parse(fs.readFileSync(path.join(ROOT, '..', 'Albion-Wolf-Database-v3', 'index.json'), 'utf8'));
+  const v3set = new Set(v3idx.map((r) => r.id));
+  const v4set = new Set(index.map((r) => r.id));
+  const expected = v3idx.map((r) => r.id).filter((id) => v4set.has(id));
+  const actual = index.map((r) => r.id);
+  const added = actual.filter((id) => !v3set.has(id));
+  const same = expected.length === actual.length && expected.every((id, i) => actual[i] === id);
+  orderCheck = (same && added.length === 0)
+    ? `OK (${actual.length} records, same order as v3, 0 added)`
+    : `FAIL (expected ${expected.length}, actual ${actual.length}, added ${added.length}: ${added.slice(0, 10).join(',')})`;
+} catch (e) { orderCheck = 'error: ' + e.message; }
+log('orderCheck:', orderCheck);
+/* ---- v4 field coverage ---- */
+let covValue = 0, covFame = 0;
+for (const r of index) { if (r.v > 0) covValue++; }
+for (const fam of families.values()) for (const t of Object.values(fam.tiers)) { if (t.fame > 0) covFame++; }
+log('coverage: index records with value>0:', covValue, '| family tiers with fame>0:', covFame, '| enchant value overrides:', enchValOverrides);
 
 /* ---- remove stale family files from previous runs ---- */
 let stale = 0;
@@ -623,13 +673,17 @@ log('validate: badFiles=' + badFiles, 'badPaths=' + badPath, 'emptyNames=' + emp
 fs.writeFileSync(path.join(ROOT, 'tools', 'report.json'), JSON.stringify({
   meta, typoFixes: typoUsed,
   junkDropped: junk.length, junkSample: junk.slice(0, 40),
+  hiddenDropped: junkHidden.length, hiddenSample: junkHidden.slice(0, 60),
+  soundFxDropped: junkFx.length, soundFxSample: junkFx.slice(0, 60),
+  coverage: { indexWithValue: covValue, tiersWithFame: covFame, enchValueOverrides: enchValOverrides },
+  orderCheck,
   missingNames: missingNames.slice(0, 40), missingNamesCount: missingNames.length,
   missingTaxonomy: missingTax.slice(0, 120), missingTaxonomyCount: missingTax.length,
   badPathLog: badPathLog.slice(0, 120),
   validate: { badFiles, badPath, emptyNames }
 }, null, 2));
 
-const readme = `# Albion Wolf Database v3
+const readme = `# Albion Wolf Database v4
 
 Generated item database for the Albion Wolf site. Rebuilt from game dumps with full spell-chain resolution, per-enchant crafting/IP and a 3-level taxonomy.
 
@@ -637,11 +691,15 @@ Generated item database for the Albion Wolf site. Rebuilt from game dumps with f
 - **records:** ${index.length} (every tier × enchant variant)
 - **spells:** ${Object.keys(spellDict).length} resolved (names + descriptions + stats + effects)
 - **taxonomy:** 3–4 levels from \`taxonomy-source.txt\` (user spec) → \`taxonomy.json\` with counts
-- **junk dropped:** ${junk.length} (non-tradable internals, placeholders, templates — see \`tools/report.json\`)
+- **junk dropped:** ${junk.length} (non-tradable internals, placeholders, templates)
+- **hidden dropped:** ${junkHidden.length} (everything the site used to hide at runtime)
+- **sound/fx dropped:** ${junkFx.length} (kill emotes, fireworks, vanity trumpet/horn)
+- **order:** identical to v3 index minus dropped (${orderCheck})
+- **new fields:** tier \`value/fame/weight/tradable/stack/unlock/showmarket\`, variant \`v\` (item value), index \`v\`
 
 ## Layout
-- \`index.json\` — flat variant records: \`{id, b, n{7 langs}, g, s, s3, s4, slot, t, e, art, f}\`
-- \`families/<Group>/<BASE>.json\` — per family: path, slot, spells (resolved Q/W/E/passives), tiers → names/desc/combat/variants (ip, dura, craft, upgrade)
+- \`index.json\` — flat variant records: \`{id, b, n{7 langs}, g, s, s3, s4, slot, t, e, art, tr, f, v}\`
+- \`families/<Group>/<BASE>.json\` — per family: path, slot, spells (resolved Q/W/E/passives), tiers → names/desc/value/fame/weight/tradable/stack/unlock/showmarket/combat/variants (v, ip, dura, craft, upgrade)
 - \`taxonomy.json\` — tree with record counts + Arabic group labels
 - \`spells.json\` — skill dictionary \`{name, desc, stats, effects}\`
 - \`meta.json\` — version + counts
